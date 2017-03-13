@@ -30,7 +30,7 @@ def xavier_weight_init():
         shape_total = shape_total + d
     
     #print shape_total
-    epsilon = np.sqrt(6 / shape_total)
+    epsilon = np.sqrt(6.0 / shape_total)
     
     #print -epsilon
     out = tf.to_float(tf.constant(np.random.uniform(-epsilon, epsilon, shape)))

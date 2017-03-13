@@ -31,7 +31,7 @@ class Config(object):
   max_epochs = 16
   early_stopping = 2
   dropout = 0.9
-  lr = 0.001
+  lr = 0.008
   l2 = 0.0
 
 class RNNLM_Model(LanguageModel):
@@ -112,6 +112,7 @@ class RNNLM_Model(LanguageModel):
         "embedding",
         [len(self.vocab), self.config.embed_size],
         tf.float32,
+        xavier_weight_init(),
         regularizer=tf.contrib.layers.l2_regularizer(self.config.l2))
       lookup = tf.nn.embedding_lookup(params, self.input_placeholder)
       lookup = tf.transpose(lookup, [1, 0, 2])
@@ -291,7 +292,8 @@ class RNNLM_Model(LanguageModel):
     hidden_state = self.initial_state
     rnn_outputs = []
     for step in xrange(self.config.num_steps):
-      hidden_state = tf.sigmoid(tf.matmul(hidden_state, H) + tf.matmul(inputs[step], I) + b1)
+      hidden_state = tf.sigmoid(tf.matmul(tf.nn.dropout(hidden_state, self.dropout_placeholder), H) \
+        + tf.matmul(tf.nn.dropout(inputs[step], self.dropout_placeholder), I) + b1)
       rnn_outputs.append(hidden_state)
     self.final_state = hidden_state
     
