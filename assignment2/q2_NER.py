@@ -19,15 +19,15 @@ class Config(object):
   instantiation.
   """
   embed_size = 50
-  batch_size = 64
+  batch_size = 384
   label_size = 5
-  hidden_size = 100
-  max_epochs = 24 
-  early_stopping = 2
-  dropout = 0.9
-  lr = 0.001
-  l2 = 0.001
-  window_size = 3
+  hidden_size = 1000
+  max_epochs = 2000 
+  early_stopping = 30
+  dropout = 0.85
+  lr = 0.2
+  l2 = 0.0
+  window_size = 5
 
 class NERModel(LanguageModel):
   """Implements a NER (Named Entity Recognition) model.
@@ -92,7 +92,11 @@ class NERModel(LanguageModel):
     (Don't change the variable names)
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    self.input_placeholder = tf.placeholder(
+        tf.int32, shape=(None, self.config.window_size))
+    self.labels_placeholder = tf.placeholder(
+        tf.float32, shape=(None, self.config.label_size))
+    self.dropout_placeholder = tf.placeholder(tf.float32)
     ### END YOUR CODE
 
   def create_feed_dict(self, input_batch, dropout, label_batch=None):
@@ -117,7 +121,18 @@ class NERModel(LanguageModel):
       feed_dict: The feed dictionary mapping from placeholders to values.
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    feed_dict = None
+    if label_batch == None:
+        feed_dict = {
+            self.input_placeholder: input_batch,
+            self.dropout_placeholder: dropout,
+        }
+    else:
+        feed_dict = {
+            self.input_placeholder: input_batch,
+            self.labels_placeholder: label_batch,
+            self.dropout_placeholder: dropout,
+        }
     ### END YOUR CODE
     return feed_dict
 
@@ -145,10 +160,16 @@ class NERModel(LanguageModel):
     Returns:
       window: tf.Tensor of shape (-1, window_size*embed_size)
     """
+    #print 'type(self.wv) ', type(self.wv)
+    #print 'self.wv.shape ', self.wv.shape
+    
     # The embedding lookup is currently only implemented for the CPU
     with tf.device('/cpu:0'):
       ### YOUR CODE HERE
-      raise NotImplementedError
+      params = tf.Variable(tf.constant(self.wv, dtype=tf.float32))
+      window = tf.to_float(tf.reshape(tf.nn.embedding_lookup(
+          params, tf.reshape(self.input_placeholder, [-1])),
+          [-1, self.config.window_size * self.config.embed_size]))
       ### END YOUR CODE
       return window
 
@@ -180,7 +201,34 @@ class NERModel(LanguageModel):
       output: tf.Tensor of shape (batch_size, label_size)
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    with tf.variable_scope("Layer"):
+        W = tf.get_variable(
+            "weights", 
+            [self.config.window_size * self.config.embed_size, self.config.hidden_size],
+            tf.float32,
+            xavier_weight_init(),
+            tf.contrib.layers.l2_regularizer(self.config.l2))
+        b1 = tf.get_variable(
+            "biases", [self.config.hidden_size], tf.float32)
+    with tf.variable_scope("Softmax"):
+        U = tf.get_variable(
+            "weights",
+            [self.config.hidden_size, self.config.label_size],
+            tf.float32,
+            xavier_weight_init(),
+            tf.contrib.layers.l2_regularizer(self.config.l2))
+        b2 = tf.get_variable(
+            "biases", [self.config.label_size], tf.float32)
+    
+    #print W.name
+    #print b1.name
+    #print U.name
+    #print b2.name
+    
+    window_drop = tf.nn.dropout(window, self.dropout_placeholder)
+    hidden = tf.tanh(tf.matmul(window_drop, W) + b1)
+    hidden_drop = tf.nn.dropout(hidden, self.dropout_placeholder)
+    output =  tf.matmul(hidden_drop, U) + b2
     ### END YOUR CODE
     return output 
 
@@ -195,7 +243,9 @@ class NERModel(LanguageModel):
       loss: A 0-d tensor (scalar)
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+        labels=self.labels_placeholder, logits=y)) + tf.reduce_sum(reg_losses)
     ### END YOUR CODE
     return loss
 
@@ -219,7 +269,8 @@ class NERModel(LanguageModel):
       train_op: The Op for training.
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    optimizer = tf.train.GradientDescentOptimizer(self.config.lr)
+    train_op = optimizer.minimize(loss)
     ### END YOUR CODE
     return train_op
 
@@ -336,7 +387,10 @@ def test_NER():
     init = tf.initialize_all_variables()
     saver = tf.train.Saver()
 
-    with tf.Session() as session:
+    session_config = tf.ConfigProto()
+    session_config.gpu_options.allow_growth = True
+    
+    with tf.Session(config=session_config) as session:
       best_val_loss = float('inf')
       best_val_epoch = 0
 
@@ -352,6 +406,8 @@ def test_NER():
         print 'Training acc: {}'.format(train_acc)
         print 'Validation loss: {}'.format(val_loss)
         if val_loss < best_val_loss:
+          print '---best loss ', val_loss
+          print '---previous best loss ', best_val_loss
           best_val_loss = val_loss
           best_val_epoch = epoch
           if not os.path.exists("./weights"):

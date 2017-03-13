@@ -54,7 +54,12 @@ class SoftmaxModel(Model):
     (Don't change the variable names)
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    self.input_placeholder = tf.placeholder(
+        tf.float32, shape=(self.config.batch_size, self.config.n_features))
+    print 'self.input_placeholder.shape', self.input_placeholder.shape
+    self.labels_placeholder = tf.placeholder(
+        tf.int32, shape=(self.config.batch_size, self.config.n_classes))
+    print 'self.labels_placeholder.shape', self.labels_placeholder.shape
     ### END YOUR CODE
 
   def create_feed_dict(self, input_batch, label_batch):
@@ -79,7 +84,12 @@ class SoftmaxModel(Model):
       feed_dict: The feed dictionary mapping from placeholders to values.
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #print 'input_batch.shape', input_batch.shape
+    #print 'label_batch.shape', label_batch.shape
+    feed_dict = {
+        self.input_placeholder: input_batch,
+        self.labels_placeholder: label_batch,
+    }
     ### END YOUR CODE
     return feed_dict
 
@@ -103,7 +113,8 @@ class SoftmaxModel(Model):
       train_op: The Op for training.
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    optimizer = tf.train.GradientDescentOptimizer(self.config.lr)
+    train_op = optimizer.minimize(loss)
     ### END YOUR CODE
     return train_op
 
@@ -127,7 +138,14 @@ class SoftmaxModel(Model):
       out: A tensor of shape (batch_size, n_classes)
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    weights = tf.Variable(
+        tf.truncated_normal([self.config.n_features, self.config.n_classes],
+                            stddev=1.0 / math.sqrt(float(self.config.batch_size))),
+        name='weights')
+    biases = tf.Variable(tf.zeros([self.config.n_classes]),
+                         name='biases')
+    out = softmax(tf.matmul(input_data, weights) + biases)
+    #print 'out.shape', out.shape
     ### END YOUR CODE
     return out
 
@@ -142,7 +160,9 @@ class SoftmaxModel(Model):
       loss: A 0-d tensor (scalar)
     """
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #print 'self.labels_placeholder.shape', self.labels_placeholder.shape
+    #print 'pred.shape', pred.shape
+    loss = cross_entropy_loss(self.labels_placeholder, pred)
     ### END YOUR CODE
     return loss
 
