@@ -1,0 +1,30 @@
+Epoch 0
+Training perplexity: 318.741668701
+Validation perplexity: 212.697692871
+Model saved in file: ./ptb_rnnlm.weights
+Total time: 32.221146822
+Epoch 1
+Training perplexity: 177.079208374
+Validation perplexity: 181.263046265
+Model saved in file: ./ptb_rnnlm.weights
+Total time: 31.3975479603
+Epoch 2
+Training perplexity: 144.911514282
+Validation perplexity: 173.918869019
+Model saved in file: ./ptb_rnnlm.weights
+Total time: 30.9449870586
+Epoch 3
+Training perplexity: 128.676528931
+Validation perplexity: 174.083892822
+Total time: 29.2002551556
+Epoch 4
+Training perplexity: 118.958221436
+Validation perplexity: 178.877349854
+Total time: 29.0705769062
+Epoch 5
+Training perplexity: 112.30330658
+Validation perplexity: 184.745880127
+=-==-==-==-==-== 162.156433105
+Test perplexity: 161.853927612
+=-==-==-==-==-=
+
