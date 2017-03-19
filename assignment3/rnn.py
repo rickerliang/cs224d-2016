@@ -9,7 +9,7 @@ import shutil
 import tensorflow as tf
 import tree as tr
 from utils import Vocab
-
+from q2_initialization import xavier_weight_init
 
 RESET_AFTER = 50
 class Config(object):
@@ -51,7 +51,7 @@ class RNN_Model():
             node_tensors = node_tensors[tree.root]
         else:
             node_tensors = [tensor for node, tensor in node_tensors.iteritems() if node.label!=2]
-            node_tensors = tf.concat(0, node_tensors)
+            node_tensors = tf.concat(node_tensors, 0)
         return self.add_projections(node_tensors)
 
     def add_model_vars(self):
@@ -69,11 +69,40 @@ class RNN_Model():
         '''
         with tf.variable_scope('Composition'):
             ### YOUR CODE HERE
-            pass
+            self.embedding = tf.get_variable(
+                'embedding',
+                [len(self.vocab), self.config.embed_size],
+                tf.float32,
+                xavier_weight_init(),
+                tf.contrib.layers.l2_regularizer(self.config.l2))
+            
+            self.W1 = tf.get_variable(
+                'W1',
+                [2 * self.config.embed_size, self.config.embed_size],
+                tf.float32,
+                xavier_weight_init(),
+                tf.contrib.layers.l2_regularizer(self.config.l2))
+                
+            self.b1 = tf.get_variable(
+                'b1',
+                [1, self.config.embed_size],
+                tf.float32,
+                xavier_weight_init())
             ### END YOUR CODE
         with tf.variable_scope('Projection'):
             ### YOUR CODE HERE
-            pass
+            self.U = tf.get_variable(
+                'U',
+                [self.config.embed_size, self.config.label_size],
+                tf.float32,
+                xavier_weight_init(),
+                tf.contrib.layers.l2_regularizer(self.config.l2))
+                
+            self.bs = tf.get_variable(
+                'bs',
+                [1, self.config.label_size],
+                tf.float32,
+                xavier_weight_init())
             ### END YOUR CODE
 
     def add_model(self, node):
@@ -91,24 +120,37 @@ class RNN_Model():
         Returns:
             node_tensors: Dict: key = Node, value = tensor(1, embed_size)
         """
+        embedding = None
+        W1 = None
+        b1 = None
         with tf.variable_scope('Composition', reuse=True):
             ### YOUR CODE HERE
-            pass
-            ### END YOUR CODE
-
-
+            embedding = tf.get_variable('embedding')
+            W1 = tf.get_variable('W1')
+            b1 = tf.get_variable('b1')
+            
+            assert embedding is self.embedding
+            assert W1 is self.W1
+            assert b1 is self.b1
+        
         node_tensors = dict()
         curr_node_tensor = None
         if node.isLeaf:
             ### YOUR CODE HERE
-            pass
+            #print 'type of self.vocab.encode(node.word)', type(self.vocab.encode(node.word))
+            # with tf.device('/cpu:0'):
+            curr_node_tensor = tf.reshape(tf.nn.embedding_lookup(
+                embedding, self.vocab.encode(node.word)), [1, -1])
+            #print 'curr_node_tensor.shape', curr_node_tensor.shape
             ### END YOUR CODE
         else:
             node_tensors.update(self.add_model(node.left))
             node_tensors.update(self.add_model(node.right))
             ### YOUR CODE HERE
-            pass
+            concat = tf.concat([node_tensors[node.left], node_tensors[node.right]], 1)
+            curr_node_tensor = tf.nn.relu(tf.matmul(concat, W1) + b1)
             ### END YOUR CODE
+        #print 'curr_node_tensor.shape ', curr_node_tensor.shape
         node_tensors[node] = curr_node_tensor
         return node_tensors
 
@@ -123,8 +165,18 @@ class RNN_Model():
         """
         logits = None
         ### YOUR CODE HERE
-        pass
+        
+        with tf.variable_scope('Projection', reuse=True):
+            U = tf.get_variable('U')
+            bs = tf.get_variable('bs')
+            
+            assert U is self.U
+            assert bs is self.bs
+            # print 'node_tensors.shape ', node_tensors.shape
+            
+            logits = tf.matmul(node_tensors, U) + bs
         ### END YOUR CODE
+        # print 'logits.shape ', logits.shape
         return logits
 
     def loss(self, logits, labels):
@@ -140,7 +192,9 @@ class RNN_Model():
         """
         loss = None
         # YOUR CODE HERE
-        pass
+        l2_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=logits)
+        loss = tf.reduce_mean(loss) + l2_loss
         # END YOUR CODE
         return loss
 
@@ -165,7 +219,8 @@ class RNN_Model():
         """
         train_op = None
         # YOUR CODE HERE
-        pass
+        optimizer = tf.train.GradientDescentOptimizer(self.config.lr)
+        train_op = optimizer.minimize(loss)
         # END YOUR CODE
         return train_op
 
@@ -179,7 +234,8 @@ class RNN_Model():
         """
         predictions = None
         # YOUR CODE HERE
-        pass
+        #print 'predictions.y.shape ', y.shape
+        predictions = tf.argmax(y, 1)
         # END YOUR CODE
         return predictions
 
@@ -191,8 +247,12 @@ class RNN_Model():
         """Make predictions from the provided model."""
         results = []
         losses = []
+        
+        session_config = tf.ConfigProto()
+        session_config.gpu_options.allow_growth = True
+        
         for i in xrange(int(math.ceil(len(trees)/float(RESET_AFTER)))):
-            with tf.Graph().as_default(), tf.Session() as sess:
+            with tf.Graph().as_default(), tf.Session(config=session_config) as sess:
                 self.add_model_vars()
                 saver = tf.train.Saver()
                 saver.restore(sess, weights_path)
@@ -210,8 +270,12 @@ class RNN_Model():
     def run_epoch(self, new_model = False, verbose=True):
         step = 0
         loss_history = []
+        
+        session_config = tf.ConfigProto()
+        session_config.gpu_options.allow_growth = True
+        
         while step < len(self.train_data):
-            with tf.Graph().as_default(), tf.Session() as sess:
+            with tf.Graph().as_default(), tf.Session(config=session_config) as sess:
                 self.add_model_vars()
                 if new_model:
                     init = tf.initialize_all_variables()
