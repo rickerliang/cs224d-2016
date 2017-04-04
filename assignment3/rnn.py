@@ -1,8 +1,10 @@
 import sys
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import random
 import time
 import itertools
 import shutil
@@ -10,18 +12,24 @@ import tensorflow as tf
 import tree as tr
 from utils import Vocab
 from q2_initialization import xavier_weight_init
+from collections import OrderedDict
+from distutils.dir_util import copy_tree
+
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 RESET_AFTER = 50
+BEST_MODEL_DIR = './best_model/'
+
 class Config(object):
     """Holds model hyperparams and data information.
        Model objects are passed a Config() object at instantiation.
     """
     embed_size = 35
     label_size = 2
-    early_stopping = 2
+    early_stopping = 10
     anneal_threshold = 0.99
     anneal_by = 1.5
-    max_epochs = 30
+    max_epochs = 100
     lr = 0.01
     l2 = 0.02
     model_name = 'rnn_embed=%d_l2=%f_lr=%f.weights'%(embed_size, l2, lr)
@@ -73,8 +81,8 @@ class RNN_Model():
                 'embedding',
                 [len(self.vocab), self.config.embed_size],
                 tf.float32,
-                xavier_weight_init(),
-                tf.contrib.layers.l2_regularizer(self.config.l2))
+                xavier_weight_init())
+                #tf.contrib.layers.l2_regularizer(self.config.l2))
             
             self.W1 = tf.get_variable(
                 'W1',
@@ -120,9 +128,6 @@ class RNN_Model():
         Returns:
             node_tensors: Dict: key = Node, value = tensor(1, embed_size)
         """
-        embedding = None
-        W1 = None
-        b1 = None
         with tf.variable_scope('Composition', reuse=True):
             ### YOUR CODE HERE
             embedding = tf.get_variable('embedding')
@@ -133,14 +138,14 @@ class RNN_Model():
             assert W1 is self.W1
             assert b1 is self.b1
         
-        node_tensors = dict()
+        node_tensors = OrderedDict()
         curr_node_tensor = None
         if node.isLeaf:
             ### YOUR CODE HERE
             #print 'type of self.vocab.encode(node.word)', type(self.vocab.encode(node.word))
-            # with tf.device('/cpu:0'):
-            curr_node_tensor = tf.reshape(tf.nn.embedding_lookup(
-                embedding, self.vocab.encode(node.word)), [1, -1])
+            with tf.device('/cpu:0'):
+                curr_node_tensor = tf.reshape(tf.nn.embedding_lookup(
+                    embedding, self.vocab.encode(node.word)), [1, -1])
             #print 'curr_node_tensor.shape', curr_node_tensor.shape
             ### END YOUR CODE
         else:
@@ -194,7 +199,7 @@ class RNN_Model():
         # YOUR CODE HERE
         l2_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=logits)
-        loss = tf.reduce_mean(loss) + l2_loss
+        loss = tf.reduce_mean(loss) + tf.reduce_sum(l2_loss)
         # END YOUR CODE
         return loss
 
@@ -270,7 +275,8 @@ class RNN_Model():
     def run_epoch(self, new_model = False, verbose=True):
         step = 0
         loss_history = []
-        
+        random.shuffle(self.train_data)
+
         session_config = tf.ConfigProto()
         session_config.gpu_options.allow_growth = True
         
@@ -280,9 +286,10 @@ class RNN_Model():
                 if new_model:
                     init = tf.initialize_all_variables()
                     sess.run(init)
+                    new_model = False
                 else:
                     saver = tf.train.Saver()
-                    saver.restore(sess, './weights/%s.temp'%self.config.model_name)
+                    saver.restore(sess, './weights/%s'%self.config.model_name)
                 for _ in xrange(RESET_AFTER):
                     if step>=len(self.train_data):
                         break
@@ -301,9 +308,9 @@ class RNN_Model():
                 saver = tf.train.Saver()
                 if not os.path.exists("./weights"):
                     os.makedirs("./weights")
-                saver.save(sess, './weights/%s.temp'%self.config.model_name)
-        train_preds, _ = self.predict(self.train_data, './weights/%s.temp'%self.config.model_name)
-        val_preds, val_losses = self.predict(self.dev_data, './weights/%s.temp'%self.config.model_name, get_loss=True)
+                saver.save(sess, './weights/%s'%self.config.model_name)
+        train_preds, _ = self.predict(self.train_data, './weights/%s'%self.config.model_name)
+        val_preds, val_losses = self.predict(self.dev_data, './weights/%s'%self.config.model_name, get_loss=True)
         train_labels = [t.root.label for t in self.train_data]
         val_labels = [t.root.label for t in self.dev_data]
         train_acc = np.equal(train_preds, train_labels).mean()
@@ -342,15 +349,22 @@ class RNN_Model():
             prev_epoch_loss = epoch_loss
 
             #save if model has improved on val
+            print val_loss, best_val_loss
             if val_loss < best_val_loss:
-                 shutil.copyfile('./weights/%s.temp'%self.config.model_name, './weights/%s'%self.config.model_name)
-                 best_val_loss = val_loss
-                 best_val_epoch = epoch
+                print 'val_loss < best_val_loss '
+                '''    
+                shutil.copyfile('./weights/%s'%self.config.model_name, './weights/%s'%self.config.model_name)
+                '''
+                if not os.path.exists(BEST_MODEL_DIR):
+                    os.makedirs(BEST_MODEL_DIR)
+                copy_tree('./weights', BEST_MODEL_DIR)
+                best_val_loss = val_loss
+                best_val_epoch = epoch
 
             # if model has not imprvoved for a while stop
             if epoch - best_val_epoch > self.config.early_stopping:
                 stopped = epoch
-                #break
+                break
         if verbose:
                 sys.stdout.write('\r')
                 sys.stdout.flush()
@@ -391,7 +405,7 @@ def test_RNN():
 
     print 'Test'
     print '=-=-='
-    predictions, _ = model.predict(model.test_data, './weights/%s'%model.config.model_name)
+    predictions, _ = model.predict(model.test_data, BEST_MODEL_DIR + model.config.model_name)
     labels = [t.root.label for t in model.test_data]
     test_acc = np.equal(predictions, labels).mean()
     print 'Test acc: {}'.format(test_acc)
