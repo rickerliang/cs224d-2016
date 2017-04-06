@@ -1,0 +1,276 @@
+Loading train trees..
+Loading dev trees..
+Loading test trees..
+pos_trees.len  1852
+neg_trees.len  1510
+1852 1510
+25633.0 total words with 5321 uniques
+epoch 0
+1999 / 2000 :    loss = 6.95972967148
+Training acc (only root node): 0.5
+Valiation acc (only root node): 0.5
+[[    0.  1000.]
+ [    0.  1000.]]
+[[   0.  200.]
+ [   0.  200.]]
+0.980923 inf
+val_loss < best_val_loss 
+epoch 1
+1999 / 2000 :    loss = 6.34996461868
+Training acc (only root node): 0.6935
+Valiation acc (only root node): 0.64
+[[ 616.  384.]
+ [ 229.  771.]]
+[[ 152.   48.]
+ [  96.  104.]]
+0.922928 0.980923
+val_loss < best_val_loss 
+epoch 2
+1999 / 2000 :    loss = 5.49931478529
+Training acc (only root node): 0.8095
+Valiation acc (only root node): 0.735
+[[ 763.  237.]
+ [ 144.  856.]]
+[[ 150.   50.]
+ [  56.  144.]]
+0.914068 0.922928
+val_loss < best_val_loss 
+epoch 3
+1999 / 2000 :    loss = 4.94820499423
+Training acc (only root node): 0.858
+Valiation acc (only root node): 0.7325
+[[ 931.   69.]
+ [ 215.  785.]]
+[[ 185.   15.]
+ [  92.  108.]]
+1.12498 0.914068
+epoch 4
+1999 / 2000 :    loss = 3.84674048424
+Training acc (only root node): 0.8775
+Valiation acc (only root node): 0.725
+[[ 969.   31.]
+ [ 214.  786.]]
+[[ 197.    3.]
+ [ 107.   93.]]
+1.26692 0.914068
+epoch 5
+1999 / 2000 :    loss = 3.78839397431
+Training acc (only root node): 0.6745
+Valiation acc (only root node): 0.56
+[[ 933.   67.]
+ [ 584.  416.]]
+[[ 192.    8.]
+ [ 168.   32.]]
+1.35657 0.914068
+epoch 6
+1999 / 2000 :    loss = 3.67198681831
+Training acc (only root node): 0.896
+Valiation acc (only root node): 0.7775
+[[ 914.   86.]
+ [ 122.  878.]]
+[[ 184.   16.]
+ [  73.  127.]]
+1.15758 0.914068
+epoch 7
+1999 / 2000 :    loss = 3.02690243721
+Training acc (only root node): 0.803
+Valiation acc (only root node): 0.7
+[[ 637.  363.]
+ [  31.  969.]]
+[[ 108.   92.]
+ [  28.  172.]]
+1.14262 0.914068
+epoch 8
+1999 / 2000 :    loss = 2.97050261497
+Training acc (only root node): 0.7935
+Valiation acc (only root node): 0.6375
+[[ 757.  243.]
+ [ 170.  830.]]
+[[ 143.   57.]
+ [  88.  112.]]
+1.22894 0.914068
+epoch 9
+1999 / 2000 :    loss = 3.40587997437
+Training acc (only root node): 0.94
+Valiation acc (only root node): 0.7475
+[[ 982.   18.]
+ [ 102.  898.]]
+[[ 191.    9.]
+ [  92.  108.]]
+annealed lr to 0.006667
+1.26398 0.914068
+epoch 10
+1999 / 2000 :    loss = 2.19614315033
+Training acc (only root node): 0.942
+Valiation acc (only root node): 0.7375
+[[ 987.   13.]
+ [ 103.  897.]]
+[[ 197.    3.]
+ [ 102.   98.]]
+1.42361 0.914068
+epoch 11
+1999 / 2000 :    loss = 2.35539984703
+Training acc (only root node): 0.9295
+Valiation acc (only root node): 0.7825
+[[ 883.  117.]
+ [  24.  976.]]
+[[ 133.   67.]
+ [  20.  180.]]
+annealed lr to 0.004444
+1.06155 0.914068
+epoch 12
+1999 / 2000 :    loss = 1.64672338963
+Training acc (only root node): 0.9725
+Valiation acc (only root node): 0.795
+[[ 985.   15.]
+ [  40.  960.]]
+[[ 191.    9.]
+ [  73.  127.]]
+0.923533 0.914068
+epoch 13
+1999 / 2000 :    loss = 1.46363866329
+Training acc (only root node): 0.9745
+Valiation acc (only root node): 0.8375
+[[ 974.   26.]
+ [  25.  975.]]
+[[ 170.   30.]
+ [  35.  165.]]
+0.849467 0.914068
+val_loss < best_val_loss 
+epoch 14
+1999 / 2000 :    loss = 1.30962300301
+Training acc (only root node): 0.976
+Valiation acc (only root node): 0.755
+[[ 996.    4.]
+ [  44.  956.]]
+[[ 194.    6.]
+ [  92.  108.]]
+1.15908 0.849467
+epoch 15
+1999 / 2000 :    loss = 1.28319275379
+Training acc (only root node): 0.9695
+Valiation acc (only root node): 0.76
+[[ 995.    5.]
+ [  56.  944.]]
+[[ 195.    5.]
+ [  91.  109.]]
+1.1959 0.849467
+epoch 16
+1999 / 2000 :    loss = 1.24441146851
+Training acc (only root node): 0.969
+Valiation acc (only root node): 0.8375
+[[ 947.   53.]
+ [   9.  991.]]
+[[ 159.   41.]
+ [  24.  176.]]
+0.840458 0.849467
+val_loss < best_val_loss 
+epoch 17
+1999 / 2000 :    loss = 1.27747189999
+Training acc (only root node): 0.975
+Valiation acc (only root node): 0.7975
+[[ 980.   20.]
+ [  30.  970.]]
+[[ 189.   11.]
+ [  70.  130.]]
+annealed lr to 0.002963
+1.09179 0.840458
+epoch 18
+1999 / 2000 :    loss = 1.09804439545
+Training acc (only root node): 0.992
+Valiation acc (only root node): 0.845
+[[ 991.    9.]
+ [   7.  993.]]
+[[ 179.   21.]
+ [  41.  159.]]
+1.00903 0.840458
+epoch 19
+1999 / 2000 :    loss = 1.04085493088
+Training acc (only root node): 0.991
+Valiation acc (only root node): 0.8275
+[[ 994.    6.]
+ [  12.  988.]]
+[[ 181.   19.]
+ [  50.  150.]]
+0.948078 0.840458
+epoch 20
+1999 / 2000 :    loss = 1.01504635811
+Training acc (only root node): 0.989
+Valiation acc (only root node): 0.8425
+[[ 985.   15.]
+ [   7.  993.]]
+[[ 168.   32.]
+ [  31.  169.]]
+0.938379 0.840458
+epoch 21
+1999 / 2000 :    loss = 0.999278485775
+Training acc (only root node): 0.9925
+Valiation acc (only root node): 0.825
+[[ 996.    4.]
+ [  11.  989.]]
+[[ 182.   18.]
+ [  52.  148.]]
+0.987734 0.840458
+epoch 22
+1999 / 2000 :    loss = 0.959846019745
+Training acc (only root node): 0.9205
+Valiation acc (only root node): 0.755
+[[ 842.  158.]
+ [   1.  999.]]
+[[ 109.   91.]
+ [   7.  193.]]
+1.85471 0.840458
+epoch 23
+1999 / 2000 :    loss = 0.975025594234
+Training acc (only root node): 0.9595
+Valiation acc (only root node): 0.81
+[[ 922.   78.]
+ [   3.  997.]]
+[[ 137.   63.]
+ [  13.  187.]]
+annealed lr to 0.001975
+1.27658 0.840458
+epoch 24
+1999 / 2000 :    loss = 0.924634695053
+Training acc (only root node): 0.99
+Valiation acc (only root node): 0.7975
+[[ 996.    4.]
+ [  16.  984.]]
+[[ 189.   11.]
+ [  70.  130.]]
+1.09015 0.840458
+epoch 25
+1999 / 2000 :    loss = 0.913900136948
+Training acc (only root node): 0.994
+Valiation acc (only root node): 0.8475
+[[ 994.    6.]
+ [   6.  994.]]
+[[ 176.   24.]
+ [  37.  163.]]
+0.978595 0.840458
+epoch 26
+1999 / 2000 :    loss = 0.874356746674
+Training acc (only root node): 0.9895
+Valiation acc (only root node): 0.8125
+[[ 997.    3.]
+ [  18.  982.]]
+[[ 187.   13.]
+ [  62.  138.]]
+1.1095 0.840458
+epoch 27
+1999 / 2000 :    loss = 0.860271096237
+Training acc (only root node): 0.993
+Valiation acc (only root node): 0.8375
+[[ 989.   11.]
+ [   3.  997.]]
+[[ 169.   31.]
+ [  34.  166.]]
+0.978196 0.840458
+
+
+stopped at 27
+
+Training time: 88499.3310671
+Test
+=-=-=
+Test acc: 0.8125
