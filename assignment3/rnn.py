@@ -39,7 +39,7 @@ class RNN_Model():
 
     def load_data(self):
         """Loads train/dev/test data and builds vocabulary."""
-        self.train_data, self.dev_data, self.test_data = tr.simplified_data(700, 100, 200)
+        self.train_data, self.dev_data, self.test_data = tr.simplified_data(2000, 400, 400)
 
         # build vocab from training data
         self.vocab = Vocab()
@@ -199,7 +199,7 @@ class RNN_Model():
         # YOUR CODE HERE
         l2_loss = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=logits)
-        loss = tf.reduce_mean(loss) + tf.reduce_sum(l2_loss)
+        loss = tf.reduce_sum(loss) + tf.reduce_sum(l2_loss)
         # END YOUR CODE
         return loss
 
@@ -268,6 +268,9 @@ class RNN_Model():
                     if get_loss:
                         root_label = tree.root.label
                         loss = sess.run(self.loss(logits, [root_label]))
+                        if math.isnan(loss):
+                            print 'fatal! predict loss is nan ', tree.get_words()
+                            raw_input()
                         losses.append(loss)
                     results.append(root_prediction)
         return results, losses
@@ -299,6 +302,9 @@ class RNN_Model():
                     loss = self.loss(logits, labels)
                     train_op = self.training(loss)
                     loss, _ = sess.run([loss, train_op])
+                    if math.isnan(loss):
+                        print 'fatal! training loss is nan ', tree.get_words()
+                        raw_input()
                     loss_history.append(loss)
                     if verbose:
                         sys.stdout.write('\r{} / {} :    loss = {}'.format(
@@ -349,6 +355,9 @@ class RNN_Model():
             prev_epoch_loss = epoch_loss
 
             #save if model has improved on val
+            if math.isnan(val_loss):
+                print 'fatal! training loss mean is nan '
+                raw_input()
             print val_loss, best_val_loss
             if val_loss < best_val_loss:
                 print 'val_loss < best_val_loss '
